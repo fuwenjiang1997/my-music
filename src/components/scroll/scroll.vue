@@ -6,6 +6,10 @@
 
 <script type="text/ecmascript-6">
   import BScroll from '@better-scroll/core'
+  import Pullup from '@better-scroll/pull-up'
+
+  BScroll.use(Pullup)
+
   export default {
     props: {
       probeType: {
@@ -34,10 +38,11 @@
       },
       refreshDelay: {
         type: Number,
-        default: 20
+        default: 40
       }
     },
     mounted() {
+      console.log(this.data)
       setTimeout(() => {
         this._initScroll()
       }, 20)
@@ -49,7 +54,8 @@
         }
         this.scroll = new BScroll(this.$refs.wrapper, {
           probeType: this.probeType,
-          click: this.click
+          click: this.click,
+          pullUpLoad: this.pullup
         })
         if (this.listenScroll) {
           let _this = this
@@ -69,6 +75,7 @@
             this.$emit('beforeScroll')
           })
         }
+        console.log(this.scroll.maxScrollY)
       },
       disable() {
         this.scroll && this.scroll.disable()
@@ -77,6 +84,7 @@
         this.scroll && this.scroll.enable()
       },
       refresh() {
+        console.log('出发')
         this.scroll && this.scroll.refresh()
       },
       scrollTo() {
@@ -87,7 +95,8 @@
       }
     },
     watch: {
-      data() {
+      data (newValue, oldValue) {
+        console.log('出发了refresh', newValue, oldValue)
         setTimeout(() => {
           this.refresh()
         }, this.refreshDelay)

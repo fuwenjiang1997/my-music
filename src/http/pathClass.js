@@ -5,7 +5,6 @@ export default class  {
     this.path = path
     this.requestMethod = requestMethod || http.requestMethod.GET
     this.questFunc = (options, success, error, urlParams) => {
-      console.log(options, urlParams)
       options = options || {}
       let requestFun, requestPath
       if (this.requestMethod === http.requestMethod.PATH) {
