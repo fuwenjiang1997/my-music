@@ -38,7 +38,7 @@
       },
       refreshDelay: {
         type: Number,
-        default: 40
+        default: 1000
       }
     },
     mounted() {
@@ -75,7 +75,6 @@
             this.$emit('beforeScroll')
           })
         }
-        console.log(this.scroll.maxScrollY)
       },
       disable() {
         this.scroll && this.scroll.disable()
@@ -84,8 +83,9 @@
         this.scroll && this.scroll.enable()
       },
       refresh() {
-        console.log('出发')
         this.scroll && this.scroll.refresh()
+        console.log('刷新：', this.data)
+        console.log(this.scroll.maxScrollY)
       },
       scrollTo() {
         this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
@@ -95,8 +95,7 @@
       }
     },
     watch: {
-      data (newValue, oldValue) {
-        console.log('出发了refresh', newValue, oldValue)
+      data () {
         setTimeout(() => {
           this.refresh()
         }, this.refreshDelay)

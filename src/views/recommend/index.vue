@@ -38,7 +38,7 @@
   import { ERR_OK } from '@/http/config'
   import Slider from 'components/slider/slider.vue'
   import Scroll from 'components/scroll/scroll'
-  import Loading from 'components/Loading/loading'
+  import Loading from 'components/loading/loading'
 
   export default {
     name: "index",
