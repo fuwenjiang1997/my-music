@@ -16,7 +16,7 @@
         singerList: []
       }
     },
-    mounted() {
+    created() {
       this._getSingerList()
     },
     methods: {
@@ -33,12 +33,15 @@
             })
           } else {
             let params = {
-              index
+              index,
+              area: 200
             }
             arr[index] = new Promise((resolve, reject) => {
               singersApi.getSingerList(params, res => {
                 if (res.response.code === ERR_OK) {
-                  resArr[index] = res.response.singerList.data.singerlist
+                  let data = res.response.singerList.data.singerlist
+                  let end = data.length > 10 ? 10 : data.length
+                  resArr[index] = (res.response.singerList.data.singerlist).slice(1,end)
                   resolve()
                 } else {
                   reject(res)
