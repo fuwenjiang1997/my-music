@@ -51,13 +51,11 @@
         if (!this.$refs.wrapper) {
           return
         }
-        console.log(this.$refs.wrapper)
         this.scroll = new BScroll(this.$refs.wrapper, {
           probeType: this.probeType,
           click: this.click,
           pullUpLoad: this.pullup
         })
-        console.log(this.scroll)
         if (this.listenScroll) {
           let _this = this
           this.scroll.on('scroll', position => {
@@ -84,9 +82,7 @@
         this.scroll && this.scroll.enable()
       },
       refresh() {
-        console.log(this.scroll.maxScrollY)
         this.scroll && this.scroll.refresh()
-        console.log(this.$refs.wrapper.scrollHeight)
       },
       scrollTo() {
         this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
@@ -101,7 +97,6 @@
           this.$nextTick(() => {
             if (this.scroll) {
               this.refresh()
-              console.log(this.scroll)
             }
           })
         },

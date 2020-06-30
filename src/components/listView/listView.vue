@@ -18,12 +18,15 @@
         </ul>
       </li>
     </ul>
-    <div class="list-shortcut">
+    <div class="list-shortcut" @touchstart="onShortcutTouchStart" @touchmove.stop.prevent="onShortcutTouchMove">
       <ul>
-        <li v-for="(item, index) in singerLetterList" :key="index" class="item font-12" :class="{'current': currentIndex === index}">
+        <li v-for="(item, index) in singerLetterList" :key="index" :data-index="index" class="item font-12" :class="{'current': parseInt(currentIndex) === parseInt(index)}">
           {{item}}
         </li>
       </ul>
+    </div>
+    <div class="list-fixed" ref="fixed" v-show="fixedTitle">
+      <div class="fixed-title font-12">{{fixedTitle}} </div>
     </div>
     <div v-show="!data.length" class="loading-container">
       <loading></loading>
@@ -35,6 +38,7 @@
   import { singerLetter } from '@/enums/enmus'
   import Scroll from 'components/scroll/scroll'
   import Loading from 'components/loading/loading'
+  import { getData } from '@/assets/js/dom'
   export default {
     data() {
       return {
@@ -66,7 +70,15 @@
     watch: {
       data() {
         this.singerLetter(this.data)
-        console.log(this.$refs.listView)
+        this.$nextTick(() => {
+          this._calculateHeight()
+        })
+      },
+      scrollY(newValue) {
+        if (newValue > 0) {
+          return this.currentIndex = 0
+        }
+        this.singerLetterList[newValue]
       }
     },
     methods: {
@@ -74,12 +86,58 @@
         this.singerLetterList = Object.assign({}, singerLetter(data))
       },
       scroll(pos) {
-        console.log(pos)
         this.scrollY = pos.y
       },
       refresh() {
         this.$refs.listView.refresh()
       },
+      onShortcutTouchStart(el) {
+        this.currentIndex = getData(el.target, 'index')
+        this.touch.startY = el.touches[0].clientY
+        this.touch.anchorIndex = this.currentIndex
+        this.scrollTo(this.currentIndex)
+      },
+      onShortcutTouchMove(el) {
+        this.touch.endY = el.touches[0].clientY
+        let startY = this.touch.startY
+        let deldata = (this.touch.endY - startY) / 18 | 0
+        this.currentIndex = deldata + parseInt(this.touch.anchorIndex)
+        this.scrollTo(this.currentIndex)
+      },
+      scrollTo(index) {
+        if (!index && index !== 0) {
+          return
+        }
+        if (index < 0) {
+          index = 0
+        } else if (index > this.listHeight.length - 2) {
+          index = this.listHeight.length - 2
+        }
+        this.scrollY = -this.listHeight[index]
+        this.$refs.listView.scrollToElement(this.$refs.listGroup[index], 0)
+      },
+      // 计算歌手列表每一个节点的高度
+      _calculateHeight() {
+        this.listHeight = []
+        let listGroup =  this.$refs.listGroup || []
+        let height = 0
+        this.listHeight.push(height)
+        listGroup.forEach((item)=>{
+          height += item.clientHeight
+          this.listHeight.push(height)
+        })
+      },
+      _scrollTo() {
+
+      }
+    },
+    computed: {
+      fixedTitle() {
+        if (this.scrollY > 0) {
+          return ''
+        }
+        return this.singerLetterList[this.currentIndex] || ''
+      }
     },
     components: {
       Scroll,
@@ -92,7 +150,7 @@
   @import '~@/assets/css/variable.styl'
   .list-view {
     /*position relative*/
-    position absolute
+    position fixed
     width 100%
     height 100%
     overflow hidden
@@ -139,6 +197,19 @@
         &.current {
           color $color-theme
         }
+      }
+    }
+    .list-fixed {
+      position: absolute
+      top: -1px
+      left: 0
+      width: 100%
+      .fixed-title {
+        height: 30px
+        line-height: 30 px
+        padding-left: 20px
+        color: $color-text-l
+        background: $color-highlight-background
       }
     }
     .loading-container {

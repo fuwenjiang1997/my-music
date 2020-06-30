@@ -51,7 +51,7 @@
           }
         }
         Promise.all(arr).then(() => {
-          // this.singerList = resArr
+          this.singerList = resArr
         })
       }
     },
