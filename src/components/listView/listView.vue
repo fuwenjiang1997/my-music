@@ -39,13 +39,15 @@
   import Scroll from 'components/scroll/scroll'
   import Loading from 'components/loading/loading'
   import { getData } from '@/assets/js/dom'
+  const TITLE_HEIGHT = 18
   export default {
     data() {
       return {
         scrollY: -1,
         currentIndex: 0,
         diff: -1,
-        singerLetterList: {}
+        singerLetterList: {},
+        timer: 0
       }
     },
     props: {
@@ -78,7 +80,30 @@
         if (newValue > 0) {
           return this.currentIndex = 0
         }
-        this.singerLetterList[newValue]
+        let timer = Date.now()
+        if (timer - this.timer < 100) {
+          return
+        }
+        console.log(timer - this.timer)
+        this.timer = timer
+        for (let index = 0; index < this.listHeight.length; index++) {
+          let firstY = this.listHeight[index]
+          let secondY = this.listHeight[index + 1]
+          if (-newValue >= firstY && -newValue < secondY) {
+            this.currentIndex = index
+            this.diff = secondY + newValue
+            return
+          }
+          console.log(index, firstY, newValue, secondY)
+        }
+      },
+      diff(newVal) {
+        let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
+        if (this.fixedTop === fixedTop) {
+          return
+        }
+        this.fixedTop = fixedTop
+        this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)`
       }
     },
     methods: {
@@ -100,7 +125,7 @@
       onShortcutTouchMove(el) {
         this.touch.endY = el.touches[0].clientY
         let startY = this.touch.startY
-        let deldata = (this.touch.endY - startY) / 18 | 0
+        let deldata = (this.touch.endY - startY) / TITLE_HEIGHT | 0
         this.currentIndex = deldata + parseInt(this.touch.anchorIndex)
         this.scrollTo(this.currentIndex)
       },
@@ -126,9 +151,6 @@
           height += item.clientHeight
           this.listHeight.push(height)
         })
-      },
-      _scrollTo() {
-
       }
     },
     computed: {
