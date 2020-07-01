@@ -1,6 +1,7 @@
 <template>
-  <div>
+  <div class="singer">
     <list-view :data="singerList"></list-view>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -61,6 +62,10 @@
   }
 </script>
 
-<style scoped>
-
+<style scoped lang="stylus">
+  .singer
+    position fixed
+    top 88px
+    bottom 0
+    width 100%
 </style>

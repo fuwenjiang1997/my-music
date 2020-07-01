@@ -11,7 +11,7 @@
       <li v-for="(group, index) in data" class="list-group" ref="listGroup" :key="index">
         <h2 class="list-group-title font-12">{{Object.values(singerLetterList)[index]}}</h2>
         <ul>
-          <li v-for="item in group" :key="item.id" class="list-group-item">
+          <li @click="selectItem(item)" v-for="item in group" :key="item.id" class="list-group-item">
             <img class="avatar" v-lazy="item.singer_pic">
             <span class="name font-14">{{item.singer_name}}</span>
           </li>
@@ -20,7 +20,13 @@
     </ul>
     <div class="list-shortcut" @touchstart="onShortcutTouchStart" @touchmove.stop.prevent="onShortcutTouchMove">
       <ul>
-        <li v-for="(item, index) in singerLetterList" :key="index" :data-index="index" class="item font-12" :class="{'current': parseInt(currentIndex) === parseInt(index)}">
+        <li
+          v-for="(item, index) in singerLetterList"
+          :key="index"
+          :data-index="index"
+          class="item font-12"
+          :class="{'current': parseInt(currentIndex) === parseInt(index)}"
+        >
           {{item}}
         </li>
       </ul>
@@ -39,15 +45,15 @@
   import Scroll from 'components/scroll/scroll'
   import Loading from 'components/loading/loading'
   import { getData } from '@/assets/js/dom'
-  const TITLE_HEIGHT = 18
+  const TITLE_HEIGHT = 28
+  const ANCHOR_HEIGHT = 18
   export default {
     data() {
       return {
         scrollY: -1,
         currentIndex: 0,
         diff: -1,
-        singerLetterList: {},
-        timer: 0
+        singerLetterList: {}
       }
     },
     props: {
@@ -80,22 +86,22 @@
         if (newValue > 0) {
           return this.currentIndex = 0
         }
-        let timer = Date.now()
-        if (timer - this.timer < 100) {
-          return
-        }
-        console.log(timer - this.timer)
-        this.timer = timer
-        for (let index = 0; index < this.listHeight.length; index++) {
-          let firstY = this.listHeight[index]
-          let secondY = this.listHeight[index + 1]
-          if (-newValue >= firstY && -newValue < secondY) {
+        // let timer = Date.now()
+        // if (timer - this.timer < 100) {
+        //   return
+        // }
+        // this.timer = timer
+        const listHeight = this.listHeight
+        for (let index = 0; index < listHeight.length; index++) {
+          let firstY = listHeight[index]
+          let secondY = listHeight[index + 1]
+          if (secondY && (-newValue >= firstY && -newValue < secondY)) {
             this.currentIndex = index
             this.diff = secondY + newValue
             return
           }
-          console.log(index, firstY, newValue, secondY)
         }
+        this.currentIndex = listHeight.length - 2
       },
       diff(newVal) {
         let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
@@ -125,7 +131,7 @@
       onShortcutTouchMove(el) {
         this.touch.endY = el.touches[0].clientY
         let startY = this.touch.startY
-        let deldata = (this.touch.endY - startY) / TITLE_HEIGHT | 0
+        let deldata = (this.touch.endY - startY) / ANCHOR_HEIGHT | 0
         this.currentIndex = deldata + parseInt(this.touch.anchorIndex)
         this.scrollTo(this.currentIndex)
       },
@@ -133,6 +139,7 @@
         if (!index && index !== 0) {
           return
         }
+        console.log(index, this.listHeight)
         if (index < 0) {
           index = 0
         } else if (index > this.listHeight.length - 2) {
@@ -151,6 +158,10 @@
           height += item.clientHeight
           this.listHeight.push(height)
         })
+      },
+      selectItem(singer) {
+        this.$router.push('/singer/singerDetail/' + singer.singer_id)
+        console.log(singer)
       }
     },
     computed: {
