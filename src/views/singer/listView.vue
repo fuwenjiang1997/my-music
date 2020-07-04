@@ -12,8 +12,8 @@
         <h2 class="list-group-title font-12">{{Object.values(singerLetterList)[index]}}</h2>
         <ul>
           <li @click="selectItem(item)" v-for="item in group" :key="item.id" class="list-group-item">
-            <img class="avatar" v-lazy="item.singer_pic">
-            <span class="name font-14">{{item.singer_name}}</span>
+            <img class="avatar" v-lazy="item.img1v1Url">
+            <span class="name font-14">{{item.name}}</span>
           </li>
         </ul>
       </li>
@@ -45,8 +45,10 @@
   import Scroll from 'components/scroll/scroll'
   import Loading from 'components/loading/loading'
   import { getData } from '@/assets/js/dom'
+
   const TITLE_HEIGHT = 28
   const ANCHOR_HEIGHT = 18
+
   export default {
     data() {
       return {
@@ -159,9 +161,8 @@
           this.listHeight.push(height)
         })
       },
-      selectItem(singer) {
-        this.$router.push('/singer/singerDetail/' + singer.singer_id)
-        console.log(singer)
+      selectItem(item) {
+        this.$emit('select', item)
       }
     },
     computed: {

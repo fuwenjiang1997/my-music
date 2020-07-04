@@ -25,6 +25,13 @@ module.exports = {
         pathRewrite: {
           '^/qqApi': ''
         }
+      },
+      '/netApi': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/netApi': ''
+        }
       }
     }
   }
