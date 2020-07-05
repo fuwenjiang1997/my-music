@@ -23,7 +23,7 @@
       :listenScroll="this.listenScroll"
     >
       <div class="song-list-wrapper">
-        <song-list v-if="hotSongs.length" :songs="hotSongs"></song-list>
+        <song-list @selectItem="selectItem" v-if="hotSongs.length" :songs="hotSongs"></song-list>
       </div>
       <div v-show="!hotSongs.length" class="loading-container">
         <loading></loading>
@@ -34,10 +34,11 @@
 
 <script type="text/ecmascript-6">
   import { mapGetters } from 'vuex'
+  import { mapActions } from 'vuex'
   import { singersApi } from '@/http/api'
   import { ERR_OK } from '@/http/config'
-  import Loading from 'components/loading/loading'
-  import Scroll from 'components/scroll/scroll'
+  import Loading from '@/baseComponents/loading/loading'
+  import Scroll from '@/baseComponents/scroll/scroll'
   import SongList from 'components/songList/songList'
   import { prefixStyle } from '@/assets/js/dom'
 
@@ -92,7 +93,18 @@
       },
       scroll(pos) {
         this.scrollY = pos.y
-      }
+      },
+      selectItem({item, index}) {
+        console.log(item, index)
+        Object.assign(item, {singer: this.singer.name})
+        this.selectPlay({
+          list: this.hotSongs,
+          index
+        })
+      },
+      ...mapActions([
+        'selectPlay'
+      ])
     },
     watch: {
       scrollY(newY) {

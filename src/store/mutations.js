@@ -11,7 +11,11 @@ const mutations = {
     state.fullScreen = flag
   },
   [mutationsTypes.SET_PLAY_LIST](state, list) {
-    state.playList = list
+    if (Object.prototype.toString.call(list) === '[object Array]') {
+      state.playList = list
+    } else {
+      state.playList = [list]
+    }
   },
   [mutationsTypes.SET_SEQUENCE_LIST](state, list) {
     state.sequenceList = list

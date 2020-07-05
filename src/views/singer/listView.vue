@@ -42,8 +42,8 @@
 
 <script type="text/ecmascript-6">
   import { singerLetter } from '@/enums/enmus'
-  import Scroll from 'components/scroll/scroll'
-  import Loading from 'components/loading/loading'
+  import Scroll from '@/baseComponents/scroll/scroll'
+  import Loading from '@/baseComponents/loading/loading'
   import { getData } from '@/assets/js/dom'
 
   const TITLE_HEIGHT = 28

@@ -1,7 +1,12 @@
 <template>
   <div class="song-list">
     <ul>
-      <li class="item font-14" v-for="(song, index) in songs" :key="index">
+      <li
+        class="item font-14"
+        v-for="(song, index) in songs"
+        :key="index"
+        @click="selectItem(song, index)"
+      >
         <div class="rank">
           <span></span>
         </div>
@@ -39,6 +44,9 @@
           arr.push(item.name)
         })
         return arr.join('·')
+      },
+      selectItem(item, index) {
+        this.$emit('selectItem', {item, index})
       }
     }
   }
