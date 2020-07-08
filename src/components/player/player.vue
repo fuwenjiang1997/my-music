@@ -1,6 +1,11 @@
 <template>
   <div class="player" v-if="currentSong" v-show="playList.length > 0">
-    <div class="normal-player" v-show="fullScreen">
+    <transition
+      name="normal"
+      @enter="enter"
+      @after-enter="afterEnter"
+    >
+      <div class="normal-player" v-show="fullScreen">
       <div class="background">
         <img :src="currentSong.al.picUrl">
       </div>
@@ -12,7 +17,7 @@
         <h2 class="subtitle font-14">{{currentSong.singer}}</h2>
       </div>
       <div class="middle">
-        <div class="middle-l" ref="middle-l">
+        <div class="middle-l" ref="middle-l">l
           <div class="cd-wrapper" ref="cdWrapper">
             <div class="cd" :class="cdCls">
               <img width="40" height="40" class="image" :src="currentSong.al.picUrl">
@@ -40,7 +45,9 @@
         </div>
       </div>
     </div>
-    <div class="min-player" v-show="!fullScreen" @click="openFullScreen">
+    </transition>
+    <transition name="mini">
+      <div class="min-player" v-show="!fullScreen" @click="openFullScreen">
       <div class="icon">
         <img :class="cdCls" width="40" height="40" :src="currentSong.al.picUrl">
       </div>
@@ -57,6 +64,7 @@
         <i class="icon-playlist"></i>
       </div>
     </div>
+    </transition>
   </div>
 </template>
 
@@ -64,6 +72,8 @@
   import { mapGetters } from 'vuex'
   import { mapMutations } from 'vuex'
   import progressCircle from '@/baseComponents/progressCircle/progressCircle'
+  import animations from 'create-keyframe-animation'
+
   export default {
     data() {
       return {
@@ -84,6 +94,43 @@
       },
       openFullScreen() {
         this.setFullScreen(true)
+      },
+      enter(el, done) {
+        let {x,y,scale} = this._getPosAndScale()
+        let animation = {
+          0: {
+            transform: `translate3d(${x}px,${y}px,0}) scale(${scale})`
+          },
+          60: {
+            transform: `translate3d(0, 0, 0) scale(1.1)`
+          },
+          100: {
+            transform: `translate3d(0, 0, 0) scale(1)`
+          }
+        }
+        animations.registerAnimation({
+          name: 'move',
+          animation,
+          presets: {
+            duration: 3000,
+            easing: 'linear'
+          }
+        })
+
+        animations.runAnimation(this.$refs.cdWrapper, 'move', done)
+      },
+      afterEnter(el) {
+        console.log(el)
+      },
+      _getPosAndScale() {
+        let minWidth = 40
+        let maxWidth = window.innerWidth * 0.8
+        let maxX = window.innerWidth / 2
+        let maxY = window.innerHeight - 20 - maxWidth / 2 // topHeight =  20
+        let scale = minWidth / maxWidth
+        let x = -(maxX - 20 + minWidth / 2)
+        let y = maxY - 30 // minY = 60 / 2
+        return { x, y, scale }
       },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN'
@@ -216,6 +263,15 @@
               color: $color-theme-d
             i
               font-size: 30px
+      &.normal-enter-active, &.normal-leave-active
+        transition all .4s
+        .top, .bottom
+          transition all .4s cubic-bezier(0.86, 0.18, 0.82, 1.32)
+      &.normal-enter, &.normal-leave-to
+        .top
+          transform translate3d(0, -100px, 0)
+        .bottom
+          transform translate3d(0, 100px, 0)
   .min-player
     display flex
     align-items center
@@ -226,6 +282,10 @@
     height 60px
     width 100%
     background: $color-highlight-background
+    &.mini-enter-active, &.mini-leave-active
+      transition opacity 1s
+    &.mini-enter, &.mini-leave-to
+      opacity 0
     .icon
       flex 0 0 40px
       width 40px
