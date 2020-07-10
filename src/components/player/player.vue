@@ -99,7 +99,7 @@
         let {x,y,scale} = this._getPosAndScale()
         let animation = {
           0: {
-            transform: `translate3d(${x}px,${y}px,0}) scale(${scale})`
+            transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
           },
           60: {
             transform: `translate3d(0, 0, 0) scale(1.1)`
@@ -112,15 +112,25 @@
           name: 'move',
           animation,
           presets: {
-            duration: 3000,
+            duration: 1000,
             easing: 'linear'
           }
         })
 
         animations.runAnimation(this.$refs.cdWrapper, 'move', done)
       },
-      afterEnter(el) {
-        console.log(el)
+      afterEnter() {
+        animations.unregisterAnimation('move')
+        this.$refs.cdWrapper.style.animation = ''
+      },
+      leave(el, done) {
+        let {x,y,scale} = this._getPosAndScale()
+        this.$refs.cdWrapper.style.transition = 'all 0.4s linear'
+        this.$refs.cdWrapper.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`
+        this.$refs.cdWrapper.addEventListener('transitionend', done)
+      },
+      afterLeave() {
+        console.log('e')
       },
       _getPosAndScale() {
         let minWidth = 40
@@ -128,7 +138,7 @@
         let maxX = window.innerWidth / 2
         let maxY = window.innerHeight - 20 - maxWidth / 2 // topHeight =  20
         let scale = minWidth / maxWidth
-        let x = -(maxX - 20 + minWidth / 2)
+        let x = -(maxX - 20 - minWidth / 2)
         let y = maxY - 30 // minY = 60 / 2
         return { x, y, scale }
       },
@@ -268,10 +278,11 @@
         .top, .bottom
           transition all .4s cubic-bezier(0.86, 0.18, 0.82, 1.32)
       &.normal-enter, &.normal-leave-to
-        .top
+        transform translateY(100%)
+        /*.top
           transform translate3d(0, -100px, 0)
         .bottom
-          transform translate3d(0, 100px, 0)
+          transform translate3d(0, 100px, 0)*/
   .min-player
     display flex
     align-items center
@@ -283,9 +294,10 @@
     width 100%
     background: $color-highlight-background
     &.mini-enter-active, &.mini-leave-active
-      transition opacity 1s
+      transition all 0.4s
     &.mini-enter, &.mini-leave-to
       opacity 0
+      transform translateY(100%)
     .icon
       flex 0 0 40px
       width 40px
