@@ -4,6 +4,8 @@
       name="normal"
       @enter="enter"
       @after-enter="afterEnter"
+      @leave="leave"
+      @after-leave="afterLeave"
     >
       <div class="normal-player" v-show="fullScreen">
       <div class="background">
@@ -34,7 +36,7 @@
             <i class="icon-prev"></i>
           </div>
           <div class="icon i-center" :class="disableCls">
-            <i class="icon-play"></i>
+            <i @click="controlPlay" :class="playIcon"></i>
           </div>
           <div class="icon i-right" :class="disableCls">
             <i class="icon-next"></i>
@@ -57,7 +59,7 @@
       </div>
       <div class="control">
         <progress-circle :radius="radius" :percent="percent">
-          <i @click.stop="togglePlaying" class="icon-mini" :class="miniIcon"></i>
+          <i @click.stop="controlPlay" class="icon-mini" :class="miniIcon"></i>
         </progress-circle>
       </div>
       <div class="control">
@@ -65,6 +67,8 @@
       </div>
     </div>
     </transition>
+    <play-list></play-list>
+    <audio ref="audio" :src="song"></audio>
   </div>
 </template>
 
@@ -72,13 +76,17 @@
   import { mapGetters } from 'vuex'
   import { mapMutations } from 'vuex'
   import progressCircle from '@/baseComponents/progressCircle/progressCircle'
+  import playList from 'components/playList/playList'
   import animations from 'create-keyframe-animation'
+  import { song } from '@/http/api'
+  import { ERR_OK } from '@/http/config'
 
   export default {
     data() {
       return {
         songReady: false,
         radius: 32,
+        song: null
       }
     },
     mounted() {
@@ -86,9 +94,6 @@
       console.log(this.currentSong)
     },
     methods: {
-      togglePlaying() {
-
-      },
       back() {
         this.setFullScreen(false)
       },
@@ -130,7 +135,8 @@
         this.$refs.cdWrapper.addEventListener('transitionend', done)
       },
       afterLeave() {
-        console.log('e')
+        this.$refs.cdWrapper.style.transition = ''
+        this.$refs.cdWrapper.style.transform = ''
       },
       _getPosAndScale() {
         let minWidth = 40
@@ -142,13 +148,28 @@
         let y = maxY - 30 // minY = 60 / 2
         return { x, y, scale }
       },
+      // 控制播放状态
+      controlPlay() {
+        this.setPlayStatus(!this.playing)
+      },
+      getSong() {
+        let params = {
+          id: this.currentSong.privilege.id
+        }
+        song.getSong(params, res => {
+          if (res.code === ERR_OK) {
+            this.song = res.data.length > 0 ? res.data[0].url : null
+          }
+        })
+      },
       ...mapMutations({
-        setFullScreen: 'SET_FULL_SCREEN'
+        setFullScreen: 'SET_FULL_SCREEN',
+        setPlayStatus: 'SET_PLAYING_STATE'
       })
     },
     computed: {
       cdCls() {
-        return this.playing ? 'play' : 'play pause'
+        return this.playing ? 'play' : 'play paused'
       },
       disableCls() {
         return this.songReady ? '' : 'disable'
@@ -156,6 +177,9 @@
       percent() {
         // return this.currentTime / this.currentSong.duration
         return 1
+      },
+      playIcon() {
+        return this.playing ? 'icon-pause' : 'icon-play'
       },
       miniIcon() {
         return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
@@ -168,8 +192,20 @@
         'currentSong'
       ])
     },
+    watch: {
+      currentSong(newValue) {
+        this.getSong(newValue.privilege.id)
+      },
+      playing() {
+        this.$nextTick(() => {
+          let audio = this.$refs.audio
+          this.playing ? audio.play() : audio.pause()
+        })
+      }
+    },
     components: {
-      progressCircle
+      progressCircle,
+      playList
     }
   }
 </script>
@@ -273,8 +309,12 @@
               color: $color-theme-d
             i
               font-size: 30px
-      &.normal-enter-active, &.normal-leave-active
+      &.normal-enter-active
         transition all .4s
+        .top, .bottom
+          transition all .4s cubic-bezier(0.86, 0.18, 0.82, 1.32)
+      &.normal-leave-active
+        transition all .6s
         .top, .bottom
           transition all .4s cubic-bezier(0.86, 0.18, 0.82, 1.32)
       &.normal-enter, &.normal-leave-to

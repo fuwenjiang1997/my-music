@@ -26,3 +26,7 @@ export const singersApi =  {
   getSingerList: new PathClass(netEaseUrl + '/artist/list', http.requestMethod.GET).questFunc,
   getSingerDesc: new PathClass(netEaseUrl + '/artists', http.requestMethod.GET).questFunc
 }
+
+export const song = {
+  getSong: new PathClass(netEaseUrl + '/song/url', http.requestMethod.GET).questFunc
+}
