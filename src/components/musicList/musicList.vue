@@ -125,7 +125,6 @@
         this.$refs.layer.style['transform'] = `translate3d(0, ${translateY}px, 0)`
         this.$refs.filter.style[backdrop] = `blur(${blur}px)`
         // this.$refs.bgImage.style[backdrop] = `blur(${blur}px)`
-        console.log(this.$refs.filter.style)
 
         if (newY < this.minTransalteY) {
           zIndex = 10

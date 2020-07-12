@@ -90,8 +90,6 @@
       }
     },
     mounted() {
-      console.log(this.playList)
-      console.log(this.currentSong)
     },
     methods: {
       back() {
@@ -159,6 +157,8 @@
         song.getSong(params, res => {
           if (res.code === ERR_OK) {
             this.song = res.data.length > 0 ? res.data[0].url : null
+            this.songReady = true
+            this.setPlayStatus(true)
           }
         })
       },
@@ -194,9 +194,14 @@
     },
     watch: {
       currentSong(newValue) {
+        this.songReady = false
+        this.setPlayStatus(false)
         this.getSong(newValue.privilege.id)
       },
       playing() {
+        if(!this.songReady) {
+          return
+        }
         this.$nextTick(() => {
           let audio = this.$refs.audio
           this.playing ? audio.play() : audio.pause()
