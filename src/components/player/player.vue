@@ -33,13 +33,13 @@
             <i class="icon-play"></i>
           </div>
           <div class="icon i-left" :class="disableCls">
-            <i class="icon-prev"></i>
+            <i class="icon-prev" @click="preSong"></i>
           </div>
           <div class="icon i-center" :class="disableCls">
             <i @click="controlPlay" :class="playIcon"></i>
           </div>
           <div class="icon i-right" :class="disableCls">
-            <i class="icon-next"></i>
+            <i class="icon-next" @click="nextSong"></i>
           </div>
           <div class="icon i-right">
             <i class="icon icon-not-favorite"></i>
@@ -68,7 +68,7 @@
     </div>
     </transition>
     <play-list></play-list>
-    <audio ref="audio" :src="song"></audio>
+    <audio ref="audio" :src="song" controls style="position: relative; z-index: 200"></audio>
   </div>
 </template>
 
@@ -86,7 +86,8 @@
       return {
         songReady: false,
         radius: 32,
-        song: null
+        song: null,
+        currentTime: 0
       }
     },
     mounted() {
@@ -150,9 +151,9 @@
       controlPlay() {
         this.setPlayStatus(!this.playing)
       },
-      getSong() {
+      getSong(id) {
         let params = {
-          id: this.currentSong.privilege.id
+          id
         }
         song.getSong(params, res => {
           if (res.code === ERR_OK) {
@@ -162,9 +163,36 @@
           }
         })
       },
+      getLyric(id) {
+        let params = {
+          id
+        }
+        song.getLyric(params, res => {
+          if (res.code === ERR_OK) {
+            console.log(res)
+          } else {
+            console.log('error')
+          }
+        })
+      },
+      preSong() {
+        if (parseInt(this.currentIndex) === 0) {
+          this.setCurrentIndex(this.playList.length - 1)
+        } else {
+          this.setCurrentIndex(this.currentIndex - 1)
+        }
+      },
+      nextSong() {
+        if (parseInt(this.currentIndex) === this.playList.length) {
+          this.setCurrentIndex(0)
+        } else {
+          this.setCurrentIndex(this.currentIndex + 1)
+        }
+      },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
-        setPlayStatus: 'SET_PLAYING_STATE'
+        setPlayStatus: 'SET_PLAYING_STATE',
+        setCurrentIndex: 'SET_CURRENT_INDEX'
       })
     },
     computed: {
@@ -197,6 +225,7 @@
         this.songReady = false
         this.setPlayStatus(false)
         this.getSong(newValue.privilege.id)
+        this.getLyric(newValue.privilege.id)
       },
       playing() {
         if(!this.songReady) {
@@ -206,6 +235,9 @@
           let audio = this.$refs.audio
           this.playing ? audio.play() : audio.pause()
         })
+      },
+      currentTime(newValue) {
+        this.currentTime = newValue
       }
     },
     components: {

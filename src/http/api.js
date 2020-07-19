@@ -23,10 +23,16 @@ export const singersApi =  {
   // getSingerList: new PathClass(qqMUrl + '/getSingerList', http.requestMethod.GET).questFunc,
   // getSingerDesc: new PathClass(qqMUrl + '/getSingerDesc', http.requestMethod.GET).questFunc,
   // getSingerAlbum: new PathClass(qqMUrl + '/getSingerAlbum', http.requestMethod.GET).questFunc
+
+  // 获取歌手列表
   getSingerList: new PathClass(netEaseUrl + '/artist/list', http.requestMethod.GET).questFunc,
+  // 获取歌手详情和歌手的热门歌单
   getSingerDesc: new PathClass(netEaseUrl + '/artists', http.requestMethod.GET).questFunc
 }
 
 export const song = {
-  getSong: new PathClass(netEaseUrl + '/song/url', http.requestMethod.GET).questFunc
+  // 获取歌曲
+  getSong: new PathClass(netEaseUrl + '/song/url', http.requestMethod.GET).questFunc,
+  // 获取歌词接口
+  getLyric: new PathClass(netEaseUrl + '/lyric', http.requestMethod.GET).questFunc
 }
