@@ -2,7 +2,7 @@
   <div class="progress-bar" ref="progressBar">
     <div class="bar-inner">
       <div class="progress" ref=progress></div>
-      <div class="progress-btn-wrapper">
+      <div class="progress-btn-wrapper" ref="progressBtn">
         <div class="progress-btn"></div>
       </div>
     </div>
@@ -10,6 +10,10 @@
 </template>
 
 <script>
+import { prefixStyle } from '@/assets/js/dom'
+const transform = prefixStyle('transform')
+
+const progressBtnWidth = 16
 export default {
   props: {
     percent: {
@@ -25,17 +29,34 @@ export default {
     };
   },
   mounted() {
-    this.progressWidth = this.refs.progressBar.clientWidth
+    this.progressWidth = this.$refs.progressBar.clientWidth
+    console.log(this.progressWidth)
   },
   computed:{
   },
   watch:{
-    percent(newV) {
-      let progress = this.$refs.progress
-      progress.style.width = this.progressWidth * newV
+    percent(newPercent) {
+      const barWidth = this.progressWidth - progressBtnWidth
+      const offsetWidth = newPercent * barWidth
+      this._offset(offsetWidth)
+
+      // let progress = this.$refs.progress
+      // console.log(this.progressWidth * newPercent)
+      // progress.style.width = this.progressWidth * newPercent + 'px'
+      // let progressBtn = this.$refs.progressBtn
+      // console.dir(progress)
+      // progressBtn.style.left = -7 + process.clientWidth
+      // console.log(process.clientWidth)
+      // console.log(progressBtn.style.left)
     }
   },
-  methods: {},
+  methods: {
+    _offset (offsetWidth) {
+      console.log(offsetWidth)
+      this.$refs.progress.style.width = offsetWidth + 'px'
+      this.$refs.progressBtn.style[transform] = `translateX(${offsetWidth}px)`
+    }
+  },
 };
 </script>
 
