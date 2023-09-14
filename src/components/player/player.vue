@@ -82,7 +82,7 @@
       @canplay="setDuration"
       @timeupdate="updateTime"
       @ended="end"
-      style="position: relative; z-index: 200"
+      style="position: fixed; z-index: -200;opacity: 0;"
     ></audio>
   </div>
 </template>
