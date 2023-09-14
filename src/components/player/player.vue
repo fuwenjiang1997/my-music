@@ -5,48 +5,55 @@
       @enter="enter"
       @after-enter="afterEnter"
       @leave="leave"
-      @after-leave="afterLeave"
-    >
+      @after-leave="afterLeave">
+
       <div class="normal-player" v-show="fullScreen">
-      <div class="background">
-        <img :src="currentSong.al.picUrl">
-      </div>
-      <div class="top">
-        <div class="back" @click="back">
-          <i class="icon-back font-22"></i>
+        <div class="background">
+          <img :src="currentSong.al.picUrl">
         </div>
-        <h1 class="title font-18">{{currentSong.name}}</h1>
-        <h2 class="subtitle font-14">{{currentSong.singer}}</h2>
-      </div>
-      <div class="middle">
-        <div class="middle-l" ref="middle-l">l
-          <div class="cd-wrapper" ref="cdWrapper">
-            <div class="cd" :class="cdCls">
-              <img width="40" height="40" class="image" :src="currentSong.al.picUrl">
+        <div class="top">
+          <div class="back" @click="back">
+            <i class="icon-back font-22"></i>
+          </div>
+          <h1 class="title font-18">{{currentSong.name}}</h1>
+          <h2 class="subtitle font-14">{{currentSong.singer}}</h2>
+        </div>
+        <div class="middle">
+          <div class="middle-l" ref="middle-l">l
+            <div class="cd-wrapper" ref="cdWrapper">
+              <div class="cd" :class="cdCls">
+                <img width="40" height="40" class="image" :src="currentSong.al.picUrl">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-l">1:01</span>
+            <div class="progress-bar-wrapper">
+              <progress-bar :percent="percent"></progress-bar>
+            </div>
+            <span class="time time-r">4:01</span>
+          </div>
+          <div class="operators">
+            <div class="icon i-left">
+              <i class="icon-play"></i>
+            </div>
+            <div class="icon i-left" :class="disableCls">
+              <i class="icon-prev" @click="preSong"></i>
+            </div>
+            <div class="icon i-center" :class="disableCls">
+              <i @click="controlPlay" class="icon-mini" :class="playIcon"></i>
+            </div>
+            <div class="icon i-right" :class="disableCls">
+              <i class="icon-next" @click="nextSong"></i>
+            </div>
+            <div class="icon i-right">
+              <i class="icon icon-not-favorite"></i>
             </div>
           </div>
         </div>
       </div>
-      <div class="bottom">
-        <div class="operators">
-          <div class="icon i-left">
-            <i class="icon-play"></i>
-          </div>
-          <div class="icon i-left" :class="disableCls">
-            <i class="icon-prev" @click="preSong"></i>
-          </div>
-          <div class="icon i-center" :class="disableCls">
-            <i @click="controlPlay" :class="playIcon"></i>
-          </div>
-          <div class="icon i-right" :class="disableCls">
-            <i class="icon-next" @click="nextSong"></i>
-          </div>
-          <div class="icon i-right">
-            <i class="icon icon-not-favorite"></i>
-          </div>
-        </div>
-      </div>
-    </div>
     </transition>
     <transition name="mini">
       <div class="min-player" v-show="!fullScreen" @click="openFullScreen">
@@ -68,7 +75,15 @@
     </div>
     </transition>
     <play-list></play-list>
-    <audio ref="audio" :src="song" controls style="position: relative; z-index: 200"></audio>
+    <audio
+      ref="audio"
+      :src="song"
+      controls
+      @canplay="setDuration"
+      @timeupdate="updateTime"
+      @ended="end"
+      style="position: fixed; z-index: -200;opacity: 0;"
+    ></audio>
   </div>
 </template>
 
@@ -76,21 +91,74 @@
   import { mapGetters } from 'vuex'
   import { mapMutations } from 'vuex'
   import progressCircle from '@/baseComponents/progressCircle/progressCircle'
+  import progressBar from '@/baseComponents/progressBar/progressBar'
   import playList from 'components/playList/playList'
   import animations from 'create-keyframe-animation'
   import { song } from '@/http/api'
   import { ERR_OK } from '@/http/config'
 
   export default {
+    components: {
+      progressCircle,
+      playList,
+      progressBar
+    },
     data() {
       return {
         songReady: false,
         radius: 32,
         song: null,
-        currentTime: 0
+        currentTime: 0,
+        duration: 0 // 时长
       }
     },
     mounted() {
+    },
+    computed: {
+      cdCls() {
+        return this.playing ? 'play' : 'play paused'
+      },
+      disableCls() {
+        return this.songReady ? '' : 'disable'
+      },
+      percent() {
+        return this.currentTime / this.duration
+      },
+      playIcon() {
+        return this.playing ? 'icon-pause' : 'icon-play'
+      },
+      miniIcon() {
+        return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+      },
+      ...mapGetters([
+        'fullScreen',
+        'playing',
+        'playList',
+        'currentIndex',
+        'currentSong'
+      ])
+    },
+    watch: {
+      currentSong(newValue) {
+        this.songReady = false
+        this.setPlayStatus(false)
+        // 获取歌曲
+        this.getSong(newValue.privilege.id)
+        // 获取歌词
+        this.getLyric(newValue.privilege.id)
+      },
+      playing() {
+        if(!this.songReady) {
+          return
+        }
+        this.$nextTick(() => {
+          let audio = this.$refs.audio
+          this.playing ? audio.play() : audio.pause()
+        })
+      },
+      currentTime(newValue) {
+        this.currentTime = newValue
+      }
     },
     methods: {
       back() {
@@ -159,7 +227,9 @@
           if (res.code === ERR_OK) {
             this.song = res.data.length > 0 ? res.data[0].url : null
             this.songReady = true
-            this.setPlayStatus(true)
+            if (this.song) {
+              this.setPlayStatus(true)
+            }
           }
         })
       },
@@ -189,61 +259,22 @@
           this.setCurrentIndex(this.currentIndex + 1)
         }
       },
+      updateTime(e) {
+        this.currentTime = e.target.currentTime
+      },
+      end() {
+        this.setCurrentIndex(this.currentIndex + 1)
+      },
+      setDuration(e) {
+        this.duration = e.srcElement.duration
+        // this.$refs.audio.duration
+      },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
         setPlayStatus: 'SET_PLAYING_STATE',
         setCurrentIndex: 'SET_CURRENT_INDEX'
       })
     },
-    computed: {
-      cdCls() {
-        return this.playing ? 'play' : 'play paused'
-      },
-      disableCls() {
-        return this.songReady ? '' : 'disable'
-      },
-      percent() {
-        // return this.currentTime / this.currentSong.duration
-        return 1
-      },
-      playIcon() {
-        return this.playing ? 'icon-pause' : 'icon-play'
-      },
-      miniIcon() {
-        return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
-      },
-      ...mapGetters([
-        'fullScreen',
-        'playing',
-        'playList',
-        'currentIndex',
-        'currentSong'
-      ])
-    },
-    watch: {
-      currentSong(newValue) {
-        this.songReady = false
-        this.setPlayStatus(false)
-        this.getSong(newValue.privilege.id)
-        this.getLyric(newValue.privilege.id)
-      },
-      playing() {
-        if(!this.songReady) {
-          return
-        }
-        this.$nextTick(() => {
-          let audio = this.$refs.audio
-          this.playing ? audio.play() : audio.pause()
-        })
-      },
-      currentTime(newValue) {
-        this.currentTime = newValue
-      }
-    },
-    components: {
-      progressCircle,
-      playList
-    }
   }
 </script>
 
@@ -335,6 +366,24 @@
         position absolute
         bottom 50px
         width 100%
+        .progress-wrapper
+          display flex
+          align-content center
+          width 80%
+          margin 0 auto
+          padding 10px 0
+          .time
+            flex 0 0 30px
+            width 30px
+            font-size $font-size-12
+            color $color-text
+            line-height 30px
+            &.time-l
+              text-align left 
+            &.time-r
+              text-align right
+          .progress-bar-wrapper
+            flex 1
         .operators
           display flex
           align-items: center

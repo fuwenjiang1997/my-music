@@ -36,6 +36,7 @@
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
+@import "~@/assets/css/variable"
 .progress-circle
   position relative
   circle
